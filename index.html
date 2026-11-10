@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#090b10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Hard Meta" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='47' fill='%23000' stroke='%23d4af37' stroke-width='5'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='%23d4af37' font-family='Georgia,serif' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E" />
+  <title>Hard Meta</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --line: rgba(255,255,255,0.07);
+      --line2: rgba(255,255,255,0.05);
+      --text: #f5f7fb;
+      --muted: #8f97aa;
+      --gold: #d4af37;
+      --gold-light: #f0d970;
+      --gold-dim: rgba(212,175,55,0.12);
+      --danger: #ff5f6d;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+      height: 100vh; height: 100dvh; overflow: hidden;
+    }
+    .app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    .view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .view.hidden { display: none; }
+
+    .topbar {
+      flex-shrink: 0;
+      padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo-circle {
+      width: 44px; height: 44px; min-width: 44px; border-radius: 50%;
+      background: #000; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 14px rgba(212,175,55,0.25), inset 0 0 8px rgba(212,175,55,0.1);
+    }
+    .logo-m {
+      font-family: Georgia, "Times New Roman", serif; font-weight: 900; font-size: 22px;
+      background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 60%, #a8891e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1;
+    }
+    .brand-text h1 {
+      font-size: 21px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .brand-text small {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-top: 1px;
+    }
+    .top-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .ghost-btn {
+      flex: 1; border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+      color: #d7e2ff; border-radius: 16px; padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .ghost-btn:active { background: rgba(255,255,255,0.07); }
+
+    .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px 18px; -webkit-overflow-scrolling: touch; }
+    .scroll::-webkit-scrollbar { width: 3px; }
+    .scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+    .chat-wrap { display: flex; flex-direction: column; gap: 12px; padding: 14px 0 8px; }
+    .msg {
+      max-width: 86%; padding: 14px 15px; border-radius: 22px; font-size: 15px; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word; animation: pop .22s ease;
+    }
+    @keyframes pop { from { opacity:0; transform: translateY(8px) scale(.98);} to { opacity:1; transform:none; } }
+    .msg.bot {
+      align-self: flex-start; color: #edf2ff;
+      background: linear-gradient(180deg, #171d29 0%, #131926 100%);
+      border: 1px solid var(--line); border-bottom-left-radius: 10px;
+    }
+    .msg.user {
+      align-self: flex-end; color: #000; font-weight: 600;
+      background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+      border-bottom-right-radius: 10px; box-shadow: 0 10px 28px rgba(212,175,55,0.20);
+    }
+    .options { display: flex; flex-wrap: wrap; gap: 10px; max-width: 95%; }
+    .opt-btn {
+      border: 1px solid rgba(212,175,55,0.30); background: var(--gold-dim); color: var(--gold-light);
+      padding: 12px 16px; border-radius: 18px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .opt-btn:active { transform: scale(.97); }
+
+    .composer { flex-shrink: 0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .composer.hidden { display: none; }
+    .composer-box {
+      display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 28px;
+      background: rgba(16,21,32,0.92); border: 1px solid var(--line); box-shadow: 0 10px 40px rgba(0,0,0,0.28);
+    }
+    .composer input {
+      flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+      color: #fff; font-size: 16px; padding: 10px 8px;
+    }
+    .composer input::placeholder { color: #66728d; }
+    .send-btn {
+      width: 46px; height: 46px; border: none; border-radius: 50%;
+      background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+      color: #000; font-size: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 20px rgba(212,175,55,0.30);
+    }
+
+    .section { margin: 16px 0 22px; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 4px 2px 12px; }
+    .section-kicker { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #6e6145; margin-bottom: 7px; }
+    .section-title { font-size: 22px; line-height: 1.05; font-weight: 800; letter-spacing: -0.04em; color: #fff; }
+    .section-badge {
+      flex-shrink: 0; padding: 8px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;
+      color: var(--gold-light); background: var(--gold-dim); border: 1px solid rgba(212,175,55,0.18);
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+      border: 1px solid var(--line); border-radius: 28px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,0.24);
+    }
+    .panel-note { padding: 14px 16px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .goal-item { display: flex; gap: 13px; align-items: flex-start; padding: 16px; position: relative; max-height: 600px; }
+    .goal-item + .goal-item { border-top: 1px solid var(--line2); }
+    .goal-item.done { opacity: .72; }
+    .goal-item.leaving { animation: leave .55s ease forwards; }
+    @keyframes leave { to { opacity:0; transform: translateX(28px) scale(.97); max-height:0; padding-top:0; padding-bottom:0; } }
+
+    .check {
+      margin-top: 2px; width: 28px; height: 28px; min-width: 28px; border-radius: 999px;
+      border: 2px solid #39415a; background: rgba(255,255,255,0.01);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: .22s ease;
+    }
+    .check:active { transform: scale(.92); }
+    .check.on {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+      box-shadow: 0 0 0 6px rgba(212,175,55,0.12);
+    }
+    .check.on::after {
+      content: ""; width: 7px; height: 12px;
+      border-right: 2.5px solid #000; border-bottom: 2.5px solid #000;
+      transform: rotate(42deg) translateY(-1px);
+    }
+
+    .thumb {
+      width: 56px; height: 56px; min-width: 56px; border-radius: 18px; overflow: hidden;
+      border: 1px solid rgba(212,175,55,0.15); background: #0d1320;
+    }
+    .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .thumb.empty {
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+      background: linear-gradient(180deg, #1a1710 0%, #0d1422 100%);
+    }
+
+    .goal-content { flex:1; min-width: 0; }
+    .goal-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .goal-title { font-size: 16.5px; line-height: 1.28; font-weight: 760; letter-spacing: -0.03em; color: #f7f9ff; word-break: break-word; }
+    .goal-title.done { text-decoration: line-through; color: #73809a; }
+    .status { flex-shrink: 0; padding: 7px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .status.pending { color: #aab6cf; background: #171f2d; border: 1px solid rgba(255,255,255,0.04); }
+    .status.done { color: var(--gold-light); background: var(--gold-dim); border: 1px solid rgba(212,175,55,0.20); }
+    .goal-steps { margin-top: 7px; font-size: 13.5px; line-height: 1.58; color: #8d97ab; word-break: break-word; white-space: pre-wrap; }
+    .goal-foot { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .meta-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px;
+      background: var(--gold-dim); border: 1px solid rgba(212,175,55,0.12); color: var(--gold-light); font-size: 12px; font-weight: 700;
+    }
+    .delete-btn { border: none; background: transparent; color: #53617d; font-size: 18px; line-height: 1; padding: 2px 4px; cursor: pointer; }
+    .delete-btn:active { color: var(--danger); }
+
+    .empty {
+      margin: 16px 2px 0; padding: 34px 20px; text-align: center; border-radius: 28px;
+      border: 1px dashed rgba(212,175,55,0.18); color: #7d879c; line-height: 1.7;
+    }
+    .empty strong { color: var(--gold-light); }
+
+    .mini-action { margin-top: 12px; padding: 0 4px 2px; }
+    .mini-action button {
+      width: 100%; border: 1px solid rgba(212,175,55,0.15); background: var(--gold-dim); color: var(--gold-light);
+      border-radius: 18px; padding: 13px 14px; font-size: 13px; font-weight: 800; cursor: pointer;
+    }
+
+    .nav { flex-shrink: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
+    .nav-box {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 7px; border-radius: 26px;
+      background: rgba(12,16,25,0.88); border: 1px solid var(--line);
+    }
+    .nav-btn {
+      border: 1px solid transparent; background: transparent; color: #73809b; border-radius: 20px; padding: 11px 10px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; font: inherit;
+    }
+    .nav-btn.active { color: var(--gold-light); background: var(--gold-dim); border-color: rgba(212,175,55,0.20); }
+    .nav-icon { font-size: 18px; line-height: 1; }
+    .nav-text { font-size: 11px; font-weight: 800; }
+
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <section class="view" id="chatView">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-circle"><span class="logo-m">M</span></div>
+        <div class="brand-text">
+          <h1>Hard Meta</h1>
+          <small>Disciplina é tudo</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost-btn" onclick="resetChat()">↻ Reiniciar</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="chat-wrap" id="chatContent"></div>
+    </div>
+    <div class="composer" id="composer">
+      <div class="composer-box">
+        <input id="chatInput" type="text" placeholder="Escreva sua meta..." autocomplete="off" />
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+    </div>
+    <input id="photoInput" type="file" accept="image/*" />
+  </section>
+
+  <section class="view hidden" id="gridView">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-circle"><span class="logo-m">M</span></div>
+        <div class="brand-text">
+          <h1>Hard Meta</h1>
+          <small>Minhas metas</small>
+        </div>
+      </div>
+    </div>
+    <div class="scroll" id="gridContent"></div>
+  </section>
+
+  <nav class="nav">
+    <div class="nav-box">
+      <button class="nav-btn active" id="navChat" onclick="showView('chat')">
+        <div class="nav-icon">💬</div>
+        <div class="nav-text">Adicionar</div>
+      </button>
+      <button class="nav-btn" id="navGrid" onclick="showView('grid')">
+        <div class="nav-icon">🎯</div>
+        <div class="nav-text">Metas</div>
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+let metas = [];
+try { metas = JSON.parse(localStorage.getItem("hard_meta_v1") || "[]"); } catch(e){ metas = []; }
+let chatState = "idle";
+let draft = { nome:"", tipo:"", passos:"", foto:"" };
+
+const chatView = document.getElementById("chatView");
+const gridView = document.getElementById("gridView");
+const navChat = document.getElementById("navChat");
+const navGrid = document.getElementById("navGrid");
+const chatContent = document.getElementById("chatContent");
+const composer = document.getElementById("composer");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+const photoInput = document.getElementById("photoInput");
+const gridContent = document.getElementById("gridContent");
+
+function showView(v){
+  const c = v === "chat";
+  chatView.classList.toggle("hidden", !c);
+  gridView.classList.toggle("hidden", c);
+  navChat.classList.toggle("active", c);
+  navGrid.classList.toggle("active", !c);
+  if(!c) renderGrid();
+}
+function scrollChat(){ requestAnimationFrame(()=>{ chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight; }); }
+function addBotMessage(t){ const e=document.createElement("div"); e.className="msg bot"; e.textContent=t; chatContent.appendChild(e); scrollChat(); }
+function addUserMessage(t){ const e=document.createElement("div"); e.className="msg user"; e.textContent=t; chatContent.appendChild(e); scrollChat(); }
+function addOptions(opts){
+  const w=document.createElement("div"); w.className="options";
+  opts.forEach(o=>{
+    const b=document.createElement("button"); b.className="opt-btn"; b.textContent=o.label;
+    b.onclick=()=>{ if(!o.keep) w.remove(); o.onSelect(); };
+    w.appendChild(b);
+  });
+  chatContent.appendChild(w); scrollChat();
+}
+function setComposerVisible(s, ph){
+  composer.classList.toggle("hidden", !s);
+  if(ph) chatInput.placeholder = ph;
+}
+function startChat(){
+  chatContent.innerHTML=""; chatState="idle";
+  draft={nome:"",tipo:"",passos:"",foto:""};
+  chatInput.value="";
+  setComposerVisible(true,"Qual é a sua meta?");
+  if(metas.length===0){
+    addBotMessage("Bem-vindo ao Hard Meta 🔱\n\nPrimeiro, me diz qual é a sua meta.");
+  } else {
+    addBotMessage("Bora criar mais uma meta 💪\n\nQual é a próxima?");
+  }
+}
+function resetChat(){ if(confirm("Recomeçar esta meta?")) startChat(); }
+function submitText(){
+  const text=chatInput.value.trim(); if(!text) return;
+  chatInput.value="";
+  if(chatState==="idle"){ addUserMessage(text); draft.nome=text; askType(); return; }
+  if(chatState==="steps"){ addUserMessage(text); draft.passos=text; askPhoto(); }
+}
+function askType(){
+  chatState="type"; setComposerVisible(false);
+  addBotMessage("Perfeito ✅\n\nEssa meta é única ou prolongada?\n\n⭐ Única: risca e some quando concluir.\n🔄 Prolongada: risca e continua na lista.");
+  addOptions([
+    { label:"⭐ Meta única", onSelect:()=>{ addUserMessage("⭐ Meta única"); draft.tipo="unica"; askSteps(); } },
+    { label:"🔄 Meta prolongada", onSelect:()=>{ addUserMessage("🔄 Meta prolongada"); draft.tipo="prolongada"; askSteps(); } }
+  ]);
+}
+function askSteps(){
+  chatState="steps"; setComposerVisible(true,"Explique como fazer essa meta...");
+  addBotMessage("Agora me diz como fazer essa meta 👇\n\nEscreve os passos.");
+  setTimeout(()=>chatInput.focus(),150);
+}
+function askPhoto(){
+  chatState="photo"; setComposerVisible(false);
+  addBotMessage("Quer colocar uma foto nessa meta?");
+  addOptions([
+    { label:"📷 Escolher foto", keep:true, onSelect:()=>photoInput.click() },
+    { label:"Agora não", onSelect:()=>{ addUserMessage("Sem foto"); finishGoal(); } }
+  ]);
+}
+photoInput.addEventListener("change", async e=>{
+  const f=e.target.files[0]; if(!f) return; photoInput.value="";
+  try{ draft.foto=await compressImage(f,720,.72); removeOptions(); addUserMessage("📷 Foto adicionada"); finishGoal(); }
+  catch(err){ alert("Não consegui carregar essa foto. Tenta outra."); }
+});
+function removeOptions(){ document.querySelectorAll("#chatContent .options").forEach(e=>e.remove()); }
+function compressImage(file, max, q){
+  return new Promise((res, rej)=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement("canvas"); let w=img.width, h=img.height;
+        if(w>h && w>max){ h*=max/w; w=max; } else if(h>max){ w*=max/h; h=max; }
+        c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h);
+        res(c.toDataURL("image/jpeg",q));
+      };
+      img.onerror=rej; img.src=ev.target.result;
+    };
+    r.onerror=rej; r.readAsDataURL(file);
+  });
+}
+function finishGoal(){
+  metas.unshift({
+    id: Date.now(), nome: draft.nome.trim(), tipo: draft.tipo,
+    passos: draft.passos.trim(), foto: draft.foto || "", concluida: false, criadaEm: new Date().toISOString()
+  });
+  saveMetas(); renderGrid(); chatState="more"; setComposerVisible(false);
+  addBotMessage("Meta criada com sucesso ✅\n\nQuer fazer outra?");
+  addOptions([
+    { label:"➕ Criar outra meta", onSelect:()=>startChat() },
+    { label:"🎯 Ver minhas metas", onSelect:()=>{ showView("grid"); startChat(); } }
+  ]);
+}
+function saveMetas(){
+  try{ localStorage.setItem("hard_meta_v1", JSON.stringify(metas)); }
+  catch(e){ alert("Espaço cheio! Apague algumas metas com foto."); }
+}
+function esc(t){ const d=document.createElement("div"); d.textContent=t||""; return d.innerHTML; }
+
+function renderGrid(){
+  const u=metas.filter(m=>m.tipo==="unica");
+  const p=metas.filter(m=>m.tipo==="prolongada");
+  if(metas.length===0){
+    gridContent.innerHTML=`<div class="empty"><strong>Nenhuma meta ainda</strong><br>Toque em <strong>Adicionar</strong> e crie sua primeira meta.</div>`;
+    return;
+  }
+  let h="";
+  if(u.length>0){
+    h+=`<section class="section">
+      <div class="section-head"><div><div class="section-kicker">Categoria 01</div><h2 class="section-title">Metas únicas</h2></div>
+      <div class="section-badge">${u.length} meta${u.length>1?"s":""}</div></div>
+      <div class="panel"><p class="panel-note">Quando concluir, risca e some da lista.</p>
+      ${u.map(renderGoalItem).join("")}</div></section>`;
+  }
+  if(p.length>0){
+    h+=`<section class="section">
+      <div class="section-head"><div><div class="section-kicker">Categoria 02</div><h2 class="section-title">Metas prolongadas</h2></div>
+      <div class="section-badge">${p.length} meta${p.length>1?"s":""}</div></div>
+      <div class="panel"><p class="panel-note">Continuam na lista. Marque todo dia.</p>
+      ${p.map(renderGoalItem).join("")}</div>
+      <div class="mini-action"><button onclick="resetProlongadas()">🔄 Novo dia (desmarcar todas)</button></div></section>`;
+  }
+  gridContent.innerHTML=h;
+}
+function renderGoalItem(m){
+  const st=m.concluida?"Feita":"Pendente";
+  const sc=m.concluida?"done":"pending";
+  const th=m.foto?`<div class="thumb"><img src="${m.foto}" alt=""></div>`:`<div class="thumb empty">🎯</div>`;
+  return `<article class="goal-item ${m.concluida?"done":""}" id="goal-${m.id}">
+    <button class="check ${m.concluida?"on":""}" onclick="toggleGoal(${m.id})"></button>
+    ${th}
+    <div class="goal-content">
+      <div class="goal-top"><h3 class="goal-title ${m.concluida?"done":""}">${esc(m.nome)}</h3>
+      <span class="status ${sc}">${st}</span></div>
+      ${m.passos?`<p class="goal-steps">${esc(m.passos)}</p>`:""}
+      <div class="goal-foot">
+        <span class="meta-pill">${m.tipo==="unica"?"⭐ Única":"🔄 Prolongada"}</span>
+        <button class="delete-btn" onclick="deleteGoal(${m.id})">✕</button>
+      </div>
+    </div>
+  </article>`;
+}
+function toggleGoal(id){
+  const m=metas.find(x=>x.id===id); if(!m) return;
+  if(m.tipo==="unica"){
+    if(m.concluida) return;
+    m.concluida=true; saveMetas(); renderGrid();
+    const el=document.getElementById("goal-"+id);
+    setTimeout(()=>{ if(el) el.classList.add("leaving"); },420);
+    setTimeout(()=>{ metas=metas.filter(x=>x.id!==id); saveMetas(); renderGrid(); },980);
+    return;
+  }
+  m.concluida=!m.concluida; saveMetas(); renderGrid();
+}
+function deleteGoal(id){
+  if(confirm("Apagar essa meta?")){ metas=metas.filter(x=>x.id!==id); saveMetas(); renderGrid(); }
+}
+function resetProlongadas(){
+  metas.forEach(x=>{ if(x.tipo==="prolongada") x.concluida=false; });
+  saveMetas(); renderGrid();
+}
+
+sendBtn.addEventListener("click", submitText);
+chatInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); submitText(); } });
+if(window.visualViewport){ window.visualViewport.addEventListener("resize", scrollChat); }
+window.addEventListener("DOMContentLoaded", ()=>{
+  startChat(); renderGrid();
+  showView(metas.length>0 ? "grid" : "chat");
+});
+</script>
+</body>
+</html>
